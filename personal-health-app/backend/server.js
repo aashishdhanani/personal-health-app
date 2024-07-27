@@ -2,12 +2,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-mongoose.connect('mongodb://localhost:27017/healthDashboard');
+mongoose.connect('mongodb://localhost:27017/healthDashboard', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -24,7 +28,7 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
   const { email, password } = req.body;
 
   // Validate input
@@ -32,13 +36,17 @@ app.post('/register', (req, res) => {
     return res.status(400).json({ message: 'Email and password are required' });
   }
 
-  const newUser = new User({ email, password });
-  newUser.save()
-    .then(user => res.json({ message: 'Registration successful', user }))
-    .catch(err => res.status(400).json({ message: 'Error', error: err }));
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ email, password: hashedPassword });
+    const user = await newUser.save();
+    res.json({ message: 'Registration successful', user });
+  } catch (err) {
+    res.status(400).json({ message: 'Error', error: err });
+  }
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   // Validate input
@@ -46,26 +54,32 @@ app.post('/login', (req, res) => {
     return res.status(400).json({ message: 'Email and password are required' });
   }
 
-  User.findOne({ email })
-    .then(user => {
-      if (!user) {
-        return res.status(400).json({ message: 'User not found' });
-      }
+  try {
+    const user = await User.findOne({ email });
 
-      // Check password
-      if (user.password !== password) {
-        return res.status(400).json({ message: 'Invalid credentials' });
-      }
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
 
-      res.json({ message: 'Login successful', user });
-    })
-    .catch(err => res.status(400).json({ message: 'Error', error: err }));
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    res.json({ message: 'Login successful', user });
+  } catch (err) {
+    res.status(400).json({ message: 'Error', error: err });
+  }
 });
 
-app.post('/users/:id/goals', (req, res) => {
-  User.findByIdAndUpdate(req.params.id, { goals: req.body }, { new: true })
-    .then(user => res.json(user))
-    .catch(err => res.status(400).json('Error: ' + err));
+app.post('/users/:id/goals', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { goals: req.body }, { new: true });
+    res.json(user);
+  } catch (err) {
+    res.status(400).json('Error: ' + err);
+  }
 });
 
 const PORT = process.env.PORT || 5001;
