@@ -10,29 +10,56 @@ app.use(cors());
 mongoose.connect('mongodb://localhost:27017/healthDashboard');
 
 const userSchema = new mongoose.Schema({
-  email: String,
-  password: String,
-  steps: Number,
-  waterIntake: Number,
-  sleep: Number,
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  steps: { type: Number, default: 0 },
+  waterIntake: { type: Number, default: 0 },
+  sleep: { type: Number, default: 0 },
   goals: {
-    steps: Number,
-    waterIntake: Number,
-    sleep: Number,
+    steps: { type: Number, default: 0 },
+    waterIntake: { type: Number, default: 0 },
+    sleep: { type: Number, default: 0 },
   },
 });
 
 const User = mongoose.model('User', userSchema);
 
 app.post('/register', (req, res) => {
-  const newUser = new User(req.body);
-  newUser.save().then(user => res.json(user)).catch(err => res.status(400).json('Error: ' + err));
+  const { email, password } = req.body;
+
+  // Validate input
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  const newUser = new User({ email, password });
+  newUser.save()
+    .then(user => res.json({ message: 'Registration successful', user }))
+    .catch(err => res.status(400).json({ message: 'Error', error: err }));
 });
 
 app.post('/login', (req, res) => {
-  User.findOne({ email: req.body.email, password: req.body.password })
-    .then(user => user ? res.json(user) : res.status(400).json('Error: User not found'))
-    .catch(err => res.status(400).json('Error: ' + err));
+  const { email, password } = req.body;
+
+  // Validate input
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  User.findOne({ email })
+    .then(user => {
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+
+      // Check password
+      if (user.password !== password) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      res.json({ message: 'Login successful', user });
+    })
+    .catch(err => res.status(400).json({ message: 'Error', error: err }));
 });
 
 app.post('/users/:id/goals', (req, res) => {
@@ -43,7 +70,6 @@ app.post('/users/:id/goals', (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 
-const server = app.listen(0, () => {
-    const port = server.address().port;
-    console.log(`Server running on port ${port}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
