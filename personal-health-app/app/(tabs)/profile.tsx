@@ -12,7 +12,7 @@ const ProfileOption = ({ title, onPress } : { title: string, onPress: () => void
 );
 
 export default function ProfileScreen() {
-  const { logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   const handleLogout = () => {
     logout();
@@ -22,15 +22,11 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
         <ThemedView style={styles.header}>
-          <ThemedText type="title" style={styles.name}>John Doe</ThemedText>
-          <ThemedText style={styles.email}>john.doe@example.com</ThemedText>
+          <ThemedText style={styles.email}>{user?.email}</ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Account</ThemedText>
-          <ProfileOption title="Edit Profile" onPress={() => {}} />
-          <ProfileOption title="Change Password" onPress={() => {}} />
-          <ProfileOption title="Notifications" onPress={() => {}} />
         </ThemedView>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -63,6 +59,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 5,
+    fontWeight: 'bold',
   },
   section: {
     backgroundColor: 'white',
@@ -91,7 +88,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     margin: 20,
-    backgroundColor: '#FCC9D8',
+    backgroundColor: '#4CAF50',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
