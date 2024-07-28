@@ -2,6 +2,8 @@
 
 Welcome HealthHub, a simple app to help you keep track of your health as well as your mental health. With HealthHub, you can input your sleep, steps, water intake, and calorie metrics on a daily basis and recieive a health score to help you stay motivated to do better. 
 
+Check out a live demo [here](https://youtu.be/zWQ4J-Gcpwc?si=idhmwuE5Y3j9dRRc)
+
 ### Getting Started
 
 If you want to try this out for yourself, follow these steps!
