@@ -3,10 +3,14 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const cron = require('node-cron');
+
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
+
+
 
 mongoose.connect('mongodb://localhost:27017/healthDashboard', {
   useNewUrlParser: true,
@@ -29,9 +33,12 @@ const userSchema = new mongoose.Schema({
   sleep: { type: Number, default: 0 },
   calories: { type: Number, default: 0 },
   goals: { type: [goalSchema], default: [] },
+  lastReset: { type: Date, default: new Date() },
 });
 
 const User = mongoose.model('User', userSchema);
+module.exports = { User };
+require('./cronjob');
 
 app.post('/register', async (req, res) => {
   const { email, password } = req.body;
@@ -155,7 +162,7 @@ app.put('/goals/update-goal', async (req, res) => {
 });
 
 // 4 endpoints for water intake, sleep, steps, and calories
-app.post('/water-intake', async (req, res) => {
+app.post('/water', async (req, res) => {
   const { email, waterIntake } = req.body;
 
   // Validate input
@@ -170,6 +177,15 @@ app.post('/water-intake', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const today = new Date().toISOString().split('T')[0];
+    if (user.lastReset.toISOString().split('T')[0] !== today) {
+      user.steps = 0;
+      user.waterIntake = 0;
+      user.sleep = 0;
+      user.calories = 0;
+      user.lastReset = new Date();
+    }
+
     user.waterIntake = waterIntake;
 
     await user.save();
@@ -180,6 +196,113 @@ app.post('/water-intake', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+app.post('/steps', async (req, res) => {
+  const { email, steps } = req.body;
+
+  // Validate input
+  if (!email || !steps) {
+    return res.status(400).json({ message: 'Email and steps are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    if (user.lastReset.toISOString().split('T')[0] !== today) {
+      user.steps = 0;
+      user.waterIntake = 0;
+      user.sleep = 0;
+      user.calories = 0;
+      user.lastReset = new Date();
+    }
+
+    user.steps = steps;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Steps updated successfully', steps: user.steps });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/sleep', async (req, res) => {
+  const { email, sleep } = req.body;
+
+  // Validate input
+  if (!email || !sleep) {
+    return res.status(400).json({ message: 'Email and sleep are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    if (user.lastReset.toISOString().split('T')[0] !== today) {
+      user.steps = 0;
+      user.waterIntake = 0;
+      user.sleep = 0;
+      user.calories = 0;
+      user.lastReset = new Date();
+    }
+
+    user.sleep = sleep;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Sleep updated successfully', sleep: user.sleep });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/calories', async (req, res) => {
+  const { email, calories } = req.body;
+
+  // Validate input
+  if (!email || !calories) {
+    return res.status(400).json({ message: 'Email and calories are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    if (user.lastReset.toISOString().split('T')[0] !== today) {
+      user.steps = 0;
+      user.waterIntake = 0;
+      user.sleep = 0;
+      user.calories = 0;
+      user.lastReset = new Date();
+    }
+
+    user.calories = calories;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Calories updated successfully', calories: user.calories });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 const PORT = process.env.PORT || 5001;
 

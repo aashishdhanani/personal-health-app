@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Button, Animated, Dimensions, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { AuthContext } from '../context/AuthContext'; // Adjust the path as necessary
+
 
 const calculateHealthScore = (sleep: number, steps: number, water: number, calories: number) => {
   const sleepScore = (sleep / 8) * 100; // Assuming 8 hours is the healthy average
@@ -27,10 +29,11 @@ const HealthScore: React.FC<HealthScoreProps> = ({ score }) => (
 );
 
 const HomeScreen: React.FC = () => {
-  const [sleep, setSleep] = useState(9);
-  const [steps, setSteps] = useState(7431);
-  const [water, setWater] = useState(5);
-  const [calories, setCalories] = useState(1784);
+  const { user } = useContext(AuthContext); // Get user from AuthContext
+  const [sleep, setSleep] = useState(0);
+  const [steps, setSteps] = useState(0);
+  const [water, setWater] = useState(0);
+  const [calories, setCalories] = useState(0);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState('');
@@ -51,23 +54,50 @@ const HomeScreen: React.FC = () => {
     }).start();
   };
 
-  const closeModal = () => {
+  const closeModal = async () => {
     if (inputValue) {
+      const value = Number(inputValue);
+      let endpoint = '';
+      let body = {};
+
       switch (selectedMetric) {
         case 'Sleep':
-          setSleep(Number(inputValue));
+          setSleep(value);
+          endpoint = '/sleep';
+          body = { email: user?.email, sleep: value };
           break;
         case 'Steps':
-          setSteps(Number(inputValue));
+          setSteps(value);
+          endpoint = '/steps';
+          body = { email: user?.email, steps: value };
           break;
         case 'Water':
-          setWater(Number(inputValue));
+          setWater(value);
+          endpoint = '/water';
+          body = { email: user?.email, waterIntake: value };
           break;
         case 'Calories':
-          setCalories(Number(inputValue));
+          setCalories(value);
+          endpoint = '/calories';
+          body = { email: user?.email, calories: value };
           break;
         default:
           break;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5001${endpoint}`, { // Adjust the URL if needed
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+
+        const result = await response.json();
+        console.log(result);
+      } catch (error) {
+        console.error('Error:', error);
       }
     }
 
