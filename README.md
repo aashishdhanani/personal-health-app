@@ -18,6 +18,6 @@ If you want to try this out for yourself, follow these steps!
 
 ### Extra Resources
 
-- [Nodejs](https://platform.openai.com/docs/api-reference/introduction](https://nodejs.org/en))
-- [MongoDB](https://developer.apple.com/tutorials/develop-in-swift/](https://www.mongodb.com/))
-- [React-Native](https://firebase.google.com/docs](https://reactnative.dev/))
+- [Nodejs](https://nodejs.org/en)
+- [MongoDB](https://www.mongodb.com/)
+- [React-Native](https://reactnative.dev/)
