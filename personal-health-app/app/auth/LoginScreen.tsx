@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ImageBackground, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { Button, Icon } from 'react-native-elements';
 
@@ -7,11 +7,18 @@ const LoginScreen = ({ navigation } : { navigation: any }) => {
   const { login } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setLoading(true);
     console.log('Username:', username); // Debug log
     console.log('Password:', password); // Debug log
+
+    // Simulate a delay of 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     login(username, password);
+    setLoading(false);
   };
 
   return (
@@ -24,7 +31,7 @@ const LoginScreen = ({ navigation } : { navigation: any }) => {
           <Icon name="envelope" type="font-awesome" color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="email"
+            placeholder="Email"
             value={username}
             onChangeText={text => {
               console.log('Username input:', text); // Debug log
@@ -47,11 +54,15 @@ const LoginScreen = ({ navigation } : { navigation: any }) => {
           />
         </View>
 
-        <Button
-          title="Login"
-          buttonStyle={styles.loginButton}
-          onPress={handleLogin}
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color="#4CAF50" />
+        ) : (
+          <Button
+            title="Login"
+            buttonStyle={styles.loginButton}
+            onPress={handleLogin}
+          />
+        )}
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.signupText}>Don't have an account? Sign up here</Text>
         </TouchableOpacity>
