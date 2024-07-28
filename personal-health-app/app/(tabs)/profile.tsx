@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { AuthContext } from '../context/AuthContext';
 
 const ProfileOption = ({ title, onPress } : { title: string, onPress: () => void }) => (
   <TouchableOpacity style={styles.option} onPress={onPress}>
@@ -11,6 +12,12 @@ const ProfileOption = ({ title, onPress } : { title: string, onPress: () => void
 );
 
 export default function ProfileScreen() {
+  const { logout } = useContext(AuthContext);
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
@@ -26,7 +33,7 @@ export default function ProfileScreen() {
           <ProfileOption title="Notifications" onPress={() => {}} />
         </ThemedView>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={() => {}}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <ThemedText style={styles.logoutText}>Log Out</ThemedText>
         </TouchableOpacity>
       </ScrollView>
