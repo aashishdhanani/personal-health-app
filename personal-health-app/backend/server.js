@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   steps: { type: Number, default: 0 },
   waterIntake: { type: Number, default: 0 },
   sleep: { type: Number, default: 0 },
+  calories: { type: Number, default: 0 },
   goals: { type: [goalSchema], default: [] },
 });
 
@@ -147,6 +148,33 @@ app.put('/goals/update-goal', async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: 'Goal updated successfully', goals: user.goals });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 4 endpoints for water intake, sleep, steps, and calories
+app.post('/water-intake', async (req, res) => {
+  const { email, waterIntake } = req.body;
+
+  // Validate input
+  if (!email || !waterIntake) {
+    return res.status(400).json({ message: 'Email and water intake are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.waterIntake = waterIntake;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Water intake updated successfully', waterIntake: user.waterIntake });
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: 'Server error' });
